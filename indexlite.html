@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xcaret100</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Xcaret100">
+    <link rel="apple-touch-icon" href="https://iili.io/CeJgd41.jpg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            background-color: #000000;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .header .back-arrow {
+            font-size: 22px;
+            cursor: pointer;
+            margin-right: 16px;
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .header .title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .content {
+            margin-top: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+            padding: 40px 20px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .logo-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #3d2b1f;
+            margin-top: 20px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 100%;
+            min-height: 100vh;
+            background: #ffffff;
+            position: relative;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #3d2b1f;
+            color: #ffffff;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .dialog-overlay.show {
+            display: flex;
+        }
+
+        .dialog-box {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .dialog-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3d2b1f;
+            margin-bottom: 15px;
+        }
+
+        .dialog-text {
+            font-size: 15px;
+            color: #5c4a3a;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .dialog-button {
+            background-color: #3d2b1f;
+            color: #ffffff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .dialog-button:hover {
+            background-color: #4a3525;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .closing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .closing-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="#" class="back-arrow">&#8592;</a>
+            <span class="title">Xcaret100</span>
+        </div>
+
+        <div class="content">
+            <div class="logo-container">
+                <img src="https://iili.io/CeJgd41.jpg" alt="Xcaret100 Logo">
+            </div>
+            <div class="loading-text" id="loadingText">Loading please wait</div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Your app could not initialize due to error code E008651 contact support.</div>
+
+    <div class="dialog-overlay" id="dialogOverlay">
+        <div class="dialog-box">
+            <div class="dialog-title">Add to Home Screen</div>
+            <div class="dialog-text">For the best experience, please add this app to your home screen. Tap the share button and select "Add to Home Screen".</div>
+            <button class="dialog-button" onclick="closeDialog()">OK</button>
+        </div>
+    </div>
+
+    <div class="closing-overlay" id="closingOverlay"></div>
+
+    <script>
+        function isStandalone() {
+            return (
+                window.navigator.standalone ||
+                window.matchMedia('(display-mode: standalone)').matches ||
+                window.matchMedia('(display-mode: fullscreen)').matches
+            );
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            
+            // Close the app 3.5 seconds after showing the error toast
+            setTimeout(() => {
+                closeApp();
+            }, 3500);
+        }
+
+        function closeApp() {
+            // Fade to black to simulate the app closing
+            const overlay = document.getElementById('closingOverlay');
+            overlay.classList.add('active');
+            
+            setTimeout(() => {
+                // Attempt to close the window/tab
+                window.close();
+                
+                // Fallback for environments where window.close() is blocked (like most modern browsers)
+                // This replaces the current page with a blank state, effectively "closing" the view
+                window.location.replace('about:blank');
+            }, 800);
+        }
+
+        function closeDialog() {
+            document.getElementById('dialogOverlay').classList.remove('show');
+        }
+
+        function showDialog() {
+            document.getElementById('dialogOverlay').classList.add('show');
+        }
+
+        window.addEventListener('load', function() {
+            if (isStandalone()) {
+                // User has added to home screen - show loading and error toast
+                document.getElementById('loadingText').style.display = 'block';
+                
+                setTimeout(() => {
+                    showToast();
+                }, 10000);
+            } else {
+                // User has NOT added to home screen - hide loading and show dialog
+                document.getElementById('loadingText').style.display = 'none';
+                setTimeout(() => {
+                    showDialog();
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
